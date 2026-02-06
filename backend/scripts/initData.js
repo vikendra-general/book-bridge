@@ -30,7 +30,7 @@ async function initData() {
       const admin = await User.create({
         username: 'admin',
         email: 'admin@bookbridge.com',
-        password: 'Admin123!',
+        password: process.env.ADMIN_PASSWORD || 'Admin123!', // Change this in production
         role: 'admin'
       });
       console.log('✅ Admin user created:', admin.email);

@@ -4,18 +4,18 @@
 
 ### For MongoDB Compass:
 ```
-mongodb+srv://jayalaxmishetty0612_db_user:S0KTjU0u7vB9ck0t@book-bridge.bupiiom.mongodb.net/bookbridge?retryWrites=true&w=majority&appName=book-bridge
+mongodb+srv://<username>:<password>@book-bridge.bupiiom.mongodb.net/bookbridge?retryWrites=true&w=majority&appName=book-bridge
 ```
 
 ### Simplified Version (also works):
 ```
-mongodb+srv://jayalaxmishetty0612_db_user:S0KTjU0u7vB9ck0t@book-bridge.bupiiom.mongodb.net/bookbridge
+mongodb+srv://<username>:<password>@book-bridge.bupiiom.mongodb.net/bookbridge
 ```
 
 ## 📋 Connection Details
 
-- **Username:** `jayalaxmishetty0612_db_user`
-- **Password:** `S0KTjU0u7vB9ck0t`
+- **Username:** `<your-db-username>`
+- **Password:** `<your-db-password>`
 - **Cluster:** `book-bridge.bupiiom.mongodb.net`
 - **Database:** `bookbridge`
 - **App Name:** `book-bridge`

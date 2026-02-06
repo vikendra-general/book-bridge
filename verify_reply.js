@@ -14,7 +14,7 @@ const verifyReply = async () => {
       user = await User.create({
         username: 'testuser',
         email: 'testuser@example.com',
-        password: 'password123',
+        password: process.env.TEST_USER_PASSWORD || 'password123',
         role: 'user'
       });
       console.log('Created test user');
@@ -26,7 +26,7 @@ const verifyReply = async () => {
       admin = await User.create({
         username: 'admin',
         email: 'admin@example.com',
-        password: 'password123',
+        password: process.env.TEST_ADMIN_PASSWORD || 'password123',
         role: 'admin'
       });
       console.log('Created admin user');
