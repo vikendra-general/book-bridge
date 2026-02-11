@@ -21,13 +21,13 @@ Update the connection string with your actual credentials:
 ```env
 PORT=5001
 NODE_ENV=development
-MONGODB_URI=mongodb+srv://<username>:<password>@book-bridge.ds5fg6x.mongodb.net/bookbridge?retryWrites=true&w=majority&appName=book-bridge
-JWT_SECRET=your_jwt_secret_here
+MONGODB_URI=mongodb+srv://chorhunbhai_db_user:YOUR_PASSWORD_HERE@book-bridge.ds5fg6x.mongodb.net/bookbridge?retryWrites=true&w=majority&appName=book-bridge
+JWT_SECRET=bookbridge-super-secret-jwt-key-2024-production-ready
 JWT_EXPIRE=7d
 ```
 
 **Important:** 
-- Replace `<username>` and `<password>` with the actual credentials from Atlas
+- Replace `YOUR_PASSWORD_HERE` with the actual password from Atlas
 - If your password has special characters, they will be automatically URL-encoded
 - The database name is `bookbridge` (already in the connection string)
 

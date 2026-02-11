@@ -5,20 +5,19 @@
 Use this connection string in MongoDB Compass:
 
 ```
-mongodb+srv://<username>:<password>@book-bridge.ds5fg6x.mongodb.net/bookbridge?retryWrites=true&w=majority&appName=book-bridge
+mongodb+srv://chorhunbhai_db_user:a0HuDjjtmv25deuD@book-bridge.ds5fg6x.mongodb.net/bookbridge?retryWrites=true&w=majority&appName=book-bridge
 ```
 
 ## Simplified Version (also works)
 
 ```
-mongodb+srv://<username>:<password>@book-bridge.ds5fg6x.mongodb.net/bookbridge
+mongodb+srv://chorhunbhai_db_user:a0HuDjjtmv25deuD@book-bridge.ds5fg6x.mongodb.net/bookbridge
 ```
 
 ## How to Connect in MongoDB Compass
 
 1. **Open MongoDB Compass**
 2. **Paste the connection string** in the connection field
-3. **Replace `<username>` and `<password>`** with your actual MongoDB credentials
 3. **Click "Connect"**
 
 ## Connection Details
