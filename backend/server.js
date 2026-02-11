@@ -37,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/bookbridge')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://jayalaxmishetty0612_db_user:S0KTjU0u7vB9ck0t@book-bridge.bupiiom.mongodb.net/bookbridge?retryWrites=true&w=majority&appName=book-bridge')
 .then(() => console.log('✅ MongoDB Connected'))
 .catch(err => {
   console.error('❌ MongoDB Connection Error:', err.message);

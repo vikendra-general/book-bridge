@@ -21,7 +21,7 @@ const categories = [
 
 async function initData() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/bookbridge');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://jayalaxmishetty0612_db_user:S0KTjU0u7vB9ck0t@book-bridge.bupiiom.mongodb.net/bookbridge?retryWrites=true&w=majority&appName=book-bridge');
     console.log('✅ MongoDB Connected');
 
     // Create admin user

@@ -4,52 +4,41 @@ const nodemailer = require('nodemailer');
 // Only create transporter if credentials are provided
 let transporter = null;
 
-if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-  // Validate email configuration
-  const emailUser = process.env.EMAIL_USER.toLowerCase();
-  const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
-  
-  // Check if using Gmail SMTP with non-Gmail address
-  if (emailHost.includes('gmail.com') && !emailUser.includes('@gmail.com')) {
-    console.log('⚠️  Configuration Warning:');
-    console.log(`   EMAIL_HOST is set to Gmail (${emailHost})`);
-    console.log(`   but EMAIL_USER is not a Gmail address (${emailUser})`);
-    console.log('💡 SOLUTION:');
-    console.log('   Option 1: Use a Gmail address for EMAIL_USER');
-    console.log('   Option 2: Change EMAIL_HOST to match your email provider');
-    console.log('   Example: EMAIL_HOST=smtp.jparksky.com (if using jparksky.com)');
-  }
-  
-  transporter = nodemailer.createTransport({
-    host: emailHost,
-    port: parseInt(process.env.EMAIL_PORT) || 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // App password for Gmail
-    },
-  });
+const emailUser = (process.env.EMAIL_USER || 'jayalaxmishetty0612@gmail.com').toLowerCase();
+const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
 
-  // Verify transporter configuration
-  transporter.verify(function (error, success) {
-    if (error) {
-      console.log('❌ Email service error:', error.message);
-      console.log('💡 Make sure EMAIL_USER and EMAIL_PASS are set correctly in .env');
-      console.log('💡 For Gmail, use an App Password (not your regular password)');
-      console.log('💡 See EMAIL_SETUP.md for detailed instructions');
-    } else {
-      console.log('✅ Email service is ready to send messages');
-    }
-  });
-} else {
-  console.log('⚠️  Email service not configured');
-  console.log('💡 To enable email features, add to backend/.env:');
-  console.log('   EMAIL_HOST=smtp.gmail.com');
-  console.log('   EMAIL_PORT=587');
-  console.log('   EMAIL_USER=your-email@gmail.com');
-  console.log('   EMAIL_PASS=your-app-password');
-  console.log('💡 See EMAIL_SETUP.md for detailed setup instructions');
+// Check if using Gmail SMTP with non-Gmail address
+if (emailHost.includes('gmail.com') && !emailUser.includes('@gmail.com')) {
+  console.log('⚠️  Configuration Warning:');
+  console.log(`   EMAIL_HOST is set to Gmail (${emailHost})`);
+  console.log(`   but EMAIL_USER is not a Gmail address (${emailUser})`);
+  console.log('💡 SOLUTION:');
+  console.log('   Option 1: Use a Gmail address for EMAIL_USER');
+  console.log('   Option 2: Change EMAIL_HOST to match your email provider');
+  console.log('   Example: EMAIL_HOST=smtp.jparksky.com (if using jparksky.com)');
 }
+
+transporter = nodemailer.createTransport({
+  host: emailHost,
+  port: parseInt(process.env.EMAIL_PORT) || 587,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER || 'jayalaxmishetty0612@gmail.com',
+    pass: process.env.EMAIL_PASS || 'hurr gufd dtet xgqk', // App password for Gmail
+  },
+});
+
+// Verify transporter configuration
+transporter.verify(function (error, success) {
+  if (error) {
+    console.log('❌ Email service error:', error.message);
+    console.log('💡 Make sure EMAIL_USER and EMAIL_PASS are set correctly in .env');
+    console.log('💡 For Gmail, use an App Password (not your regular password)');
+    console.log('💡 See EMAIL_SETUP.md for detailed instructions');
+  } else {
+    console.log('✅ Email service is ready to send messages');
+  }
+});
 
 // Send verification code email
 exports.sendVerificationCode = async (email, code) => {

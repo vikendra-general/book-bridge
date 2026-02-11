@@ -18,7 +18,7 @@ exports.protect = async (req, res, next) => {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bookbridge-super-secret-jwt-key-2024-production-ready');
       req.user = await User.findById(decoded.id);
       
       if (!req.user) {
@@ -77,7 +77,7 @@ exports.identifyUser = async (req, res, next) => {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bookbridge-super-secret-jwt-key-2024-production-ready');
       req.user = await User.findById(decoded.id);
     } catch (err) {
       // Invalid token, just proceed as guest

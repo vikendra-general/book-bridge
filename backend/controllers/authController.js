@@ -5,7 +5,7 @@ const { sendVerificationCode } = require('../utils/emailService');
 
 // Generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'bookbridge-super-secret-jwt-key-2024-production-ready', {
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
 };
