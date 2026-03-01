@@ -4,7 +4,8 @@ import { FaCheckCircle, FaHome, FaShoppingCart } from 'react-icons/fa';
 
 const OrderConfirmation = () => {
   const location = useLocation();
-  const { orderId, paymentId, paymentMethod } = location.state || {};
+  const { orderId, paymentId, paymentMethod, orders } = location.state || {};
+  const deliveryAddress = orders?.[0]?.deliveryAddress;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -40,6 +41,20 @@ const OrderConfirmation = () => {
               <p className="text-blue-800">
                 <strong>Cash on Delivery:</strong> Please keep the exact amount ready when the delivery arrives.
               </p>
+            </div>
+          )}
+
+          {deliveryAddress && (
+            <div className="bg-gray-50 rounded-lg p-6 mb-8 text-left border border-gray-100">
+              <h3 className="font-bold text-gray-900 mb-3 border-b pb-2">Delivery Details</h3>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p className="font-medium text-gray-900">{deliveryAddress.fullName}</p>
+                <p>{deliveryAddress.addressLine1}</p>
+                {deliveryAddress.addressLine2 && <p>{deliveryAddress.addressLine2}</p>}
+                <p>{deliveryAddress.city}, {deliveryAddress.state} - {deliveryAddress.pincode}</p>
+                {deliveryAddress.landmark && <p><span className="font-medium">Landmark:</span> {deliveryAddress.landmark}</p>}
+                <p className="pt-1 font-medium text-gray-900">Phone: {deliveryAddress.phone}</p>
+              </div>
             </div>
           )}
 

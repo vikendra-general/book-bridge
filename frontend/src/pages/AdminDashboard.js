@@ -4,6 +4,7 @@ import {
   FaBook, FaUsers, FaShoppingCart, 
   FaSpinner, FaCheck, FaTimes, FaSearch, FaEnvelope, FaTrash, FaRupeeSign, FaPaperPlane 
 } from 'react-icons/fa';
+import { getImageUrl } from '../utils/imageHelper';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -19,6 +20,10 @@ const AdminDashboard = () => {
   const [bookNotes, setBookNotes] = useState('');
   const [bookModalLoading, setBookModalLoading] = useState(false);
   
+  // Order Modal States
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  
   // Reply Modal States
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showReplyModal, setShowReplyModal] = useState(false);
@@ -33,6 +38,28 @@ const AdminDashboard = () => {
     orderStatus: '',
     userSearch: ''
   });
+
+  const isValidDDMMYYYY = (dateStr) => {
+    const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dateStr);
+    if (!match) return false;
+
+    const day = Number(match[1]);
+    const month = Number(match[2]);
+    const year = Number(match[3]);
+    const parsed = new Date(year, month - 1, day);
+
+    return (
+      !Number.isNaN(parsed.getTime()) &&
+      parsed.getDate() === day &&
+      parsed.getMonth() === month - 1 &&
+      parsed.getFullYear() === year
+    );
+  };
+
+  const closeOrderModal = () => {
+    setSelectedOrder(null);
+    setShowOrderModal(false);
+  };
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
@@ -154,6 +181,24 @@ const AdminDashboard = () => {
     setActionLoading(orderId);
     try {
       let returnPickupDate = null;
+      let expectedDeliveryDate = null;
+
+      const shippingStatuses = ['processing', 'in_transit', 'picked_up', 'delivered'];
+      if (shippingStatuses.includes(status)) {
+        const dateStr = prompt('Please enter expected delivery date (DD/MM/YYYY):');
+        if (!dateStr) {
+          setActionLoading(null);
+          return;
+        }
+
+        if (!isValidDDMMYYYY(dateStr)) {
+          alert('Invalid date format. Please use DD/MM/YYYY.');
+          setActionLoading(null);
+          return;
+        }
+        expectedDeliveryDate = dateStr;
+      }
+
       if (status === 'return_approved') {
         const dateStr = prompt('Please enter expected pickup date (YYYY-MM-DD):');
         if (!dateStr) {
@@ -171,7 +216,8 @@ const AdminDashboard = () => {
 
       await api.put(`/admin/orders/${orderId}/status`, { 
         status,
-        returnPickupDate 
+        returnPickupDate,
+        expectedDeliveryDate
       });
       await fetchOrders();
       await fetchDashboard();
@@ -649,7 +695,17 @@ const AdminDashboard = () => {
                               </span>
                             </td>
                             <td className="px-6 py-4">
-                              {orderTab === 'new' && (
+                              <div className="flex items-center space-x-3">
+                                <button
+                                  onClick={() => {
+                                    setSelectedOrder(order);
+                                    setShowOrderModal(true);
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                                >
+                                  View
+                                </button>
+                                {orderTab === 'new' && (
                                 <div className="relative">
                                   {actionLoading === order._id ? (
                                     <div className="px-3 py-1"><FaSpinner className="animate-spin text-blue-600" /></div>
@@ -720,6 +776,7 @@ const AdminDashboard = () => {
                                   )}
                                 </div>
                               )}
+                            </div>
                             </td>
                           </tr>
                         ))}
@@ -901,6 +958,105 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Order Details Modal */}
+      {showOrderModal && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
+                  <p className="font-mono font-medium text-gray-900 text-sm mt-1">{selectedOrder._id}</p>
+                </div>
+                <button 
+                  onClick={closeOrderModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FaTimes className="text-2xl" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                {/* Book & Payment Info */}
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3 border-b pb-1">Book Information</h4>
+                    <div className="flex gap-4">
+                      {selectedOrder.book?.images && selectedOrder.book.images.length > 0 ? (
+                        <img
+                          src={getImageUrl(selectedOrder.book.images[0])}
+                          alt={selectedOrder.book.title}
+                          className="w-20 h-28 object-cover rounded shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-20 h-28 bg-gray-100 rounded flex items-center justify-center">
+                          <FaBook className="text-gray-400 text-2xl" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-bold text-gray-900">{selectedOrder.book?.title}</p>
+                        <p className="text-sm text-gray-600">by {selectedOrder.book?.author}</p>
+                        <p className="text-primary-600 font-bold mt-2">₹{selectedOrder.book?.price}</p>
+                        <p className="text-xs text-gray-500 mt-1">Qty: {selectedOrder.quantity || 1}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 border-b pb-1">Payment Info</h4>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>Method: <span className="uppercase">{selectedOrder.paymentMethod}</span></p>
+                      <p>Status: <span className={`font-medium ${selectedOrder.paymentStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>{selectedOrder.paymentStatus?.toUpperCase()}</span></p>
+                      <p>Total Amount: <span className="font-bold text-gray-900">₹{Math.round(selectedOrder.totalAmount)}</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shipping & People Info */}
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 border-b pb-1">Delivery Address</h4>
+                    <div className="text-sm text-gray-600 space-y-1 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <p className="font-bold text-gray-900">{selectedOrder.deliveryAddress?.fullName}</p>
+                      <p>{selectedOrder.deliveryAddress?.addressLine1}</p>
+                      {selectedOrder.deliveryAddress?.addressLine2 && <p>{selectedOrder.deliveryAddress?.addressLine2}</p>}
+                      <p>{selectedOrder.deliveryAddress?.city}, {selectedOrder.deliveryAddress?.state} - {selectedOrder.deliveryAddress?.pincode}</p>
+                      {selectedOrder.deliveryAddress?.landmark && <p><span className="font-medium">Landmark:</span> {selectedOrder.deliveryAddress.landmark}</p>}
+                      <p className="pt-1 font-bold text-gray-900">Phone: {selectedOrder.deliveryAddress?.phone}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 border-b pb-1">Parties</h4>
+                    <div className="text-sm text-gray-600 space-y-2">
+                      <div>
+                        <p className="text-xs font-medium uppercase text-gray-400 tracking-wider">Buyer</p>
+                        <p className="font-medium text-gray-900">{selectedOrder.buyer?.username}</p>
+                        <p className="text-xs">{selectedOrder.buyer?.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium uppercase text-gray-400 tracking-wider">Seller</p>
+                        <p className="font-medium text-gray-900">{selectedOrder.book?.isOriginal ? 'BookBridge (Platform)' : selectedOrder.seller?.username}</p>
+                        <p className="text-xs">{selectedOrder.seller?.email}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t flex justify-end">
+                <button
+                  onClick={closeOrderModal}
+                  className="px-6 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showBookModal && selectedBook && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">

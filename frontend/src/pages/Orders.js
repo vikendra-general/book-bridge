@@ -1,13 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { FaBook, FaSpinner } from 'react-icons/fa';
+import { FaBook, FaSpinner, FaTimes, FaEye } from 'react-icons/fa';
 import { getImageUrl } from '../utils/imageHelper';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [type, setType] = useState('buyer');
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+
+  const openOrderModal = (order) => {
+    setSelectedOrder(order);
+    setShowOrderModal(true);
+  };
+
+  const closeOrderModal = () => {
+    setSelectedOrder(null);
+    setShowOrderModal(false);
+  };
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -20,6 +32,13 @@ const Orders = () => {
       setLoading(false);
     }
   }, [type]);
+
+  const formatExpectedDeliveryDate = (value) => {
+    if (!value) return 'Not assigned';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Not assigned';
+    return date.toLocaleDateString('en-GB');
+  };
 
   useEffect(() => {
     fetchOrders();
@@ -144,15 +163,24 @@ const Orders = () => {
                         {new Date(order.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {order.book && (
-                          <Link
-                            to={`/books/${order.book._id}`}
-                            className="text-primary-600 hover:text-primary-700 font-medium"
+                        <div className="flex items-center space-x-3">
+                          <button
+                            onClick={() => openOrderModal(order)}
+                            className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
+                            title="View Order Details"
                           >
-                        View Book
-                      </Link>
-                    )}
-                  </td>
+                            <FaEye className="mr-1" /> View
+                          </button>
+                          {order.book && (
+                            <Link
+                              to={`/books/${order.book._id}`}
+                              className="text-gray-600 hover:text-gray-800 font-medium"
+                            >
+                              Book Page
+                            </Link>
+                          )}
+                        </div>
+                      </td>
                 </tr>
               ))}
             </tbody>
@@ -161,6 +189,112 @@ const Orders = () => {
         </div>
       )}
       </div>
+
+      {/* Order Details Modal */}
+      {showOrderModal && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
+                  <p className="font-mono font-medium text-gray-900 text-sm mt-1">{selectedOrder._id}</p>
+                </div>
+                <button 
+                  onClick={closeOrderModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FaTimes className="text-2xl" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                {/* Book & Payment Info */}
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3 border-b pb-1">Book Information</h4>
+                    <div className="flex gap-4">
+                      {selectedOrder.book?.images && selectedOrder.book.images.length > 0 ? (
+                        <img
+                          src={getImageUrl(selectedOrder.book.images[0])}
+                          alt={selectedOrder.book.title}
+                          className="w-20 h-28 object-cover rounded shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-20 h-28 bg-gray-100 rounded flex items-center justify-center">
+                          <FaBook className="text-gray-400 text-2xl" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-bold text-gray-900">{selectedOrder.book?.title}</p>
+                        <p className="text-sm text-gray-600">by {selectedOrder.book?.author}</p>
+                        <p className="text-primary-600 font-bold mt-2">₹{selectedOrder.book?.price}</p>
+                        <p className="text-xs text-gray-500 mt-1">Qty: {selectedOrder.quantity || 1}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 border-b pb-1">Payment Info</h4>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>Method: <span className="uppercase">{selectedOrder.paymentMethod}</span></p>
+                      <p>Amount: ₹{selectedOrder.totalAmount}</p>
+                      <p>Date: {new Date(selectedOrder.createdAt).toLocaleDateString()}</p>
+                      <p>Expected Delivery: <span className="font-medium text-gray-900">{formatExpectedDeliveryDate(selectedOrder.expectedDeliveryDate)}</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shipping & People Info */}
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 border-b pb-1">Delivery Address</h4>
+                    <div className="text-sm text-gray-600 space-y-1 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <p className="font-bold text-gray-900">{selectedOrder.deliveryAddress?.fullName}</p>
+                      <p>{selectedOrder.deliveryAddress?.addressLine1}</p>
+                      {selectedOrder.deliveryAddress?.addressLine2 && <p>{selectedOrder.deliveryAddress?.addressLine2}</p>}
+                      <p>{selectedOrder.deliveryAddress?.city}, {selectedOrder.deliveryAddress?.state} - {selectedOrder.deliveryAddress?.pincode}</p>
+                      {selectedOrder.deliveryAddress?.landmark && <p><span className="font-medium">Landmark:</span> {selectedOrder.deliveryAddress.landmark}</p>}
+                      <p className="pt-1 font-bold text-gray-900">Phone: {selectedOrder.deliveryAddress?.phone}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 border-b pb-1">Parties</h4>
+                    <div className="text-sm text-gray-600 space-y-2">
+                      <div>
+                        <p className="text-xs font-medium uppercase text-gray-400 tracking-wider">Buyer</p>
+                        <p className="font-medium text-gray-900">{selectedOrder.buyer?.username}</p>
+                        <p className="text-xs">{selectedOrder.buyer?.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium uppercase text-gray-400 tracking-wider">Seller</p>
+                        <p className="font-medium text-gray-900">{selectedOrder.book?.isOriginal ? 'BookBridge (Platform)' : selectedOrder.seller?.username}</p>
+                        <p className="text-xs">{selectedOrder.seller?.email}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t flex justify-end space-x-4">
+                 <Link
+                    to={`/books/${selectedOrder.book?._id}`}
+                    className="px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors font-medium"
+                  >
+                    View Book Page
+                  </Link>
+                <button
+                  onClick={closeOrderModal}
+                  className="px-6 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

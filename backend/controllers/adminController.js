@@ -338,7 +338,7 @@ exports.getOrders = async (req, res) => {
 // @access  Private/Admin
 exports.updateOrderStatus = async (req, res) => {
   try {
-    const { status, trackingNumber, notes, returnPickupDate } = req.body;
+    const { status, trackingNumber, notes, returnPickupDate, expectedDeliveryDate } = req.body;
     const order = await Order.findById(req.params.id);
 
     if (!order) {
@@ -351,6 +351,44 @@ exports.updateOrderStatus = async (req, res) => {
     order.status = status;
     if (status === 'delivered' && !order.deliveredAt) {
       order.deliveredAt = Date.now();
+    }
+    const shippingStatuses = ['processing', 'in_transit', 'picked_up', 'delivered'];
+    if (shippingStatuses.includes(status) && !expectedDeliveryDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Expected delivery date is required in DD/MM/YYYY format'
+      });
+    }
+    if (expectedDeliveryDate) {
+      // Accept DD/MM/YYYY from admin panel and persist as a Date.
+      const ddmmyyyyPattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+      const match = expectedDeliveryDate.match(ddmmyyyyPattern);
+
+      if (!match) {
+        return res.status(400).json({
+          success: false,
+          message: 'Expected delivery date must be in DD/MM/YYYY format'
+        });
+      }
+
+      const day = Number(match[1]);
+      const month = Number(match[2]);
+      const year = Number(match[3]);
+      const parsedExpectedDate = new Date(year, month - 1, day);
+
+      if (
+        Number.isNaN(parsedExpectedDate.getTime()) ||
+        parsedExpectedDate.getDate() !== day ||
+        parsedExpectedDate.getMonth() !== month - 1 ||
+        parsedExpectedDate.getFullYear() !== year
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid expected delivery date'
+        });
+      }
+
+      order.expectedDeliveryDate = parsedExpectedDate;
     }
     if (status === 'return_approved' && returnPickupDate) {
       order.returnPickupDate = returnPickupDate;
@@ -371,7 +409,7 @@ exports.updateOrderStatus = async (req, res) => {
     // Notify buyer
     await Notification.create({
       user: order.buyer,
-      message: `Your order status has been updated to ${status}`,
+      message: `Your order status has been updated to ${status}${order.expectedDeliveryDate ? ` (Expected delivery: ${new Date(order.expectedDeliveryDate).toLocaleDateString('en-GB')})` : ''}`,
       notificationType: 'order',
       relatedOrder: order._id
     });

@@ -62,6 +62,7 @@ const orderSchema = new mongoose.Schema({
   pickupAddress: String,
   pickupDate: Date,
   deliveryDate: Date,
+  expectedDeliveryDate: Date,
   pickupAssignedTo: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

@@ -111,6 +111,13 @@ const Profile = () => {
     setShowOrderModal(false);
   };
 
+  const formatExpectedDeliveryDate = (value) => {
+    if (!value) return 'Not assigned';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Not assigned';
+    return date.toLocaleDateString('en-GB');
+  };
+
   const handleAddressSubmit = async (e) => {
     e.preventDefault();
     
@@ -501,9 +508,9 @@ const Profile = () => {
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                      order.paymentMethod === 'Online' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                                      order.paymentMethod?.toLowerCase() === 'online' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
                                     }`}>
-                                      {order.paymentMethod || 'COD'}
+                                      {order.paymentMethod?.toUpperCase() || 'COD'}
                                     </span>
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap">
@@ -592,9 +599,9 @@ const Profile = () => {
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                      order.paymentMethod === 'Online' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                                      order.paymentMethod?.toLowerCase() === 'online' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
                                     }`}>
-                                      {order.paymentMethod || 'COD'}
+                                      {order.paymentMethod?.toUpperCase() || 'COD'}
                                     </span>
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap">
@@ -838,19 +845,21 @@ const Profile = () => {
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Payment Info</h4>
                   <div className="text-sm text-gray-600 space-y-1">
-                    <p>Method: {selectedOrder.paymentMethod}</p>
+                    <p>Method: <span className="uppercase">{selectedOrder.paymentMethod}</span></p>
                     <p>Amount: ₹{selectedOrder.totalAmount}</p>
                     <p>Date: {new Date(selectedOrder.createdAt).toLocaleDateString()}</p>
+                    <p>Expected Delivery: <span className="font-medium text-gray-900">{formatExpectedDeliveryDate(selectedOrder.expectedDeliveryDate)}</span></p>
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Shipping Address</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Delivery Address</h4>
                   <div className="text-sm text-gray-600 space-y-1">
-                    <p>{selectedOrder.shippingAddress?.fullName}</p>
-                    <p>{selectedOrder.shippingAddress?.addressLine1}</p>
-                    {selectedOrder.shippingAddress?.addressLine2 && <p>{selectedOrder.shippingAddress?.addressLine2}</p>}
-                    <p>{selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state} - {selectedOrder.shippingAddress?.pincode}</p>
-                    <p>Phone: {selectedOrder.shippingAddress?.phone}</p>
+                    <p className="font-medium text-gray-900">{selectedOrder.deliveryAddress?.fullName}</p>
+                    <p>{selectedOrder.deliveryAddress?.addressLine1}</p>
+                    {selectedOrder.deliveryAddress?.addressLine2 && <p>{selectedOrder.deliveryAddress?.addressLine2}</p>}
+                    <p>{selectedOrder.deliveryAddress?.city}, {selectedOrder.deliveryAddress?.state} - {selectedOrder.deliveryAddress?.pincode}</p>
+                    {selectedOrder.deliveryAddress?.landmark && <p><span className="font-medium">Landmark:</span> {selectedOrder.deliveryAddress.landmark}</p>}
+                    <p className="pt-1 font-medium">Phone: {selectedOrder.deliveryAddress?.phone}</p>
                   </div>
                 </div>
               </div>
